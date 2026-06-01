@@ -18,7 +18,7 @@ app.get(
   tryCatch(async (req, res) => {
     const user = getUser();
     if (!user) {
-      throw new Error("user not found");
+      throw new Error("User not found");
     }
 
     return res.status(200).json({ success: true });
