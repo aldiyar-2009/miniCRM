@@ -1,24 +1,22 @@
-// Update with your config settings.
+const config = require("../config/config");
 
-/**
- * @type { Object.<string, import("knex").Knex.Config> }
- */
 module.exports = {
   development: {
-    client: "postgresql",
+    client: config.db.client,
     connection: {
-      host: "localhost",
-      port: 5432,
-      user: "postgres",
-      password: "aldiyar",
-      name: "postgres",
+      host: config.db.host,
+      port: config.db.port,
+      user: config.db.user,
+      password: config.db.password,
+      database: config.db.database,
     },
     pool: {
       min: 2,
       max: 10,
     },
     migrations: {
-      tableName: "companies_table",
+      tableName: "knex_migrations",
+      directory: "./migrations",
     },
   },
 };

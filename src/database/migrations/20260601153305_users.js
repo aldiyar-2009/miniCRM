@@ -3,11 +3,15 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-  return knex.schema.createTable("companies", function (table) {
+  return knex.schema.createTable("users", function (table) {
     table.uuid("id").primary().defaultTo(knex.fn.uuid());
     table.string("name", 255).notNullable();
-    table.string("industry", 255).notNullable();
-    table.string("website", 255).notNullable();
+    table.string("email", 255).notNullable().unique();
+    table.string("password", 255).notNullable();
+    table
+      .enum("role", ["admin", "manager", "viewer"])
+      .notNullable()
+      .defaultTo("manager");
     table.timestamps(true, true);
   });
 };
@@ -17,5 +21,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTable("companies");
+  return knex.schema.dropTable("users");
 };
