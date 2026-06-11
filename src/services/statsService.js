@@ -5,8 +5,6 @@ const userRepository = require("../repositories/userRepositories");
 
 class StatsService {
   async getStats() {
-    // Promise.allSettled — запускаем все 4 запроса параллельно.
-    // Даже если один упадёт — остальные всё равно вернут данные.
     const [companiesResult, contactsResult, dealsResult, usersResult] =
       await Promise.allSettled([
         companyRepository.getAllCompanies(),
@@ -17,19 +15,27 @@ class StatsService {
 
     return {
       companies: {
-        count: companiesResult.status === "fulfilled" ? companiesResult.value.length : null,
+        count:
+          companiesResult.status === "fulfilled"
+            ? companiesResult.value.length
+            : null,
         available: companiesResult.status === "fulfilled",
       },
       contacts: {
-        count: contactsResult.status === "fulfilled" ? contactsResult.value.length : null,
+        count:
+          contactsResult.status === "fulfilled"
+            ? contactsResult.value.length
+            : null,
         available: contactsResult.status === "fulfilled",
       },
       deals: {
-        count: dealsResult.status === "fulfilled" ? dealsResult.value.length : null,
+        count:
+          dealsResult.status === "fulfilled" ? dealsResult.value.length : null,
         available: dealsResult.status === "fulfilled",
       },
       users: {
-        count: usersResult.status === "fulfilled" ? usersResult.value.length : null,
+        count:
+          usersResult.status === "fulfilled" ? usersResult.value.length : null,
         available: usersResult.status === "fulfilled",
       },
     };

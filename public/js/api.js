@@ -1,56 +1,93 @@
-// Выбираем базовый URL API: если фронтенд запущен с порта 5500
-// (например Live Server), направляем запросы на локальный бэкенд на 3000.
-const API_BASE_URL = (function () {
-  try {
-    const loc = window.location;
-    // Если dev-сервер (Live Server) на 5500 — направляем на backend:3000
-    if (loc.hostname === "127.0.0.1" || loc.hostname === "localhost") {
-      if (loc.port === "5500")
-        return loc.protocol + "//" + loc.hostname + ":3000";
-    }
-    return loc.origin;
-  } catch (e) {
-    return "http://localhost:3000";
-  }
-})();
+const API_BASE = "http://localhost:3000";
 
-$.ajaxSetup({
-  beforeSend: function (xhr) {
-    const token = localStorage.getItem("token");
-    if (token) {
-      xhr.setRequestHeader("Authorization", "Bearer " + token);
-    }
-  },
-});
-
-/**
- * @param {string} url
- * @param {string} method
- * @param {object} data
- * @returns {jQuery.Deferred}
- */
-function apiRequest(url, method = "GET", data = null) {
-  const options = {
-    url: API_BASE_URL + url,
-    type: method,
-    contentType: "application/json; charset=utf-8",
-    dataType: "json",
-
-    xhrFields: {
-      withCredentials: true,
-    },
-  };
-
-  if (method !== "GET" && data !== null) {
-    options.data = JSON.stringify(data);
-  }
-
-  return $.ajax(options);
+function getToken() {
+  return localStorage.getItem("accessToken");
 }
 
-const api = {
-  get: (url) => apiRequest(url, "GET"),
-  post: (url, data) => apiRequest(url, "POST", data),
-  put: (url, data) => apiRequest(url, "PUT", data),
-  delete: (url) => apiRequest(url, "DELETE"),
-};
+function getRefreshToken() {
+  return localStorage.getItem("refreshToken");
+}
+
+function setTokens(access, refresh) {
+  localStorage.setItem("accessToken", access);
+  if (refresh) localStorage.setItem("refreshToken", refresh);
+}
+
+function clearTokens() {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("user");
+}
+
+function getUser() {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch {
+    return null;
+  }
+}
+
+async function tryRefresh() {
+  const rt = getRefreshToken();
+  if (!rt) return false;
+  try {
+    const res = await fetch(API_BASE + "/users/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken: rt }),
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    setTokens(data.accessToken, null);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function apiFetch(path, options = {}) {
+  const token = getToken();
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
+  if (token) headers["Authorization"] = "Bearer " + token;
+
+  let res = await fetch(API_BASE + path, { ...options, headers });
+
+  if (res.status === 401) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      headers["Authorization"] = "Bearer " + getToken();
+      res = await fetch(API_BASE + path, { ...options, headers });
+    } else {
+      clearTokens();
+      window.location.href = "/minicrm-out/public/html/login.html";
+      return;
+    }
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Ошибка сервера" }));
+    throw { status: res.status, data: err };
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : {};
+}
+
+function requireAuth() {
+  if (!getToken()) {
+    window.location.href = "/minicrm-out/public/html/login.html";
+  }
+}
+
+function showAlert(container, message, type = "error") {
+  container.innerHTML =
+    '<div class="alert alert-' + type + '">' + message + "</div>";
+}
+
+function formatDate(str) {
+  if (!str) return "—";
+  return new Date(str).toLocaleDateString("ru-RU");
+}

@@ -84,6 +84,19 @@ class userController {
       next(error);
     }
   }
+
+  async refreshToken(req, res, next) {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) {
+        return res.status(400).json({ error: "Refresh токен обязателен" });
+      }
+      const result = await userServices.refreshToken(refreshToken);
+      return res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new userController();

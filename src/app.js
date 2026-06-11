@@ -18,6 +18,10 @@ const userRoutes = require("./routes/userRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const dealsRoutes = require("./routes/dealsRoutes");
 const activityRoutes = require("./routes/activityRoutes");
+const statsRoutes = require("./routes/statsRoutes");
+const dealColumnsRoutes = require("./routes/dealColumnsRoutes");
+const callDealRoutes = require("./routes/callDealRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const errorHandler = require("./middleware/errorHandler");
 
@@ -144,7 +148,7 @@ app.use(
 );
 
 // подключение к фронту
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "../public/index.html")));
 
 // роуты
 app.use(companyRoutes);
@@ -152,6 +156,15 @@ app.use(userRoutes);
 app.use(contactRoutes);
 app.use(dealsRoutes);
 app.use(activityRoutes);
+app.use(statsRoutes);
+
+// app.use("/", dealColumnsRoutes);
+// app.use("/", callDealRoutes);
+// app.use("/", notificationRoutes);
+
+app.use(dealColumnsRoutes);
+app.use(callDealRoutes);
+app.use(notificationRoutes);
 
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger_output.json");

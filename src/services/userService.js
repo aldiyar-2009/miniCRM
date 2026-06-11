@@ -1,5 +1,4 @@
 const appError = require("../../AppError");
-
 const userRepasitories = require("../repositories/userRepositories");
 const jwt = require("jsonwebtoken");
 const config = require("../config/token");
@@ -83,6 +82,23 @@ class userService {
       throw new appError("Пользователь не найден с таким id", 404);
     }
     return userRepasitories.deleteUser(id);
+  }
+
+  async refreshToken(token) {
+    let decoded;
+    try {
+      decoded = jwt.verify(token, config.refreshSecret);
+    } catch (err) {
+      throw new appError("Неверный или просроченный refresh токен", 401);
+    }
+
+    const user = await userRepasitories.getUserById(decoded.id);
+    if (!user) {
+      throw new appError("Пользователь не найден", 404);
+    }
+
+    const accessToken = generateAccessToken(user.id, user.name, user.role);
+    return { accessToken };
   }
 }
 

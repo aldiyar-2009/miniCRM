@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>miniCRM</title>
+</head>
+
+<body>
+  <script>
+    if (localStorage.getItem("accessToken")) {
+      window.location.href = "/minicrm-out/public/html/dashboard.html";
+    } else {
+      window.location.href = "/minicrm-out/public/html/login.html";
+    }
+  </script>
+</body>
+
+</html>

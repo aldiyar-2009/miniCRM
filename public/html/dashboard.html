@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Главная — miniCRM</title>
+  <link rel="stylesheet" href="/minicrm-out/public/css/base.css">
+  <link rel="stylesheet" href="/minicrm-out/public/css/dashboard.css">
+</head>
+
+<body>
+  <div class="page">
+    <div class="page-title">Главная</div>
+    <div id="stats-grid" class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Компании</div>
+        <div class="stat-value" id="stat-companies">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Контакты</div>
+        <div class="stat-value" id="stat-contacts">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Сделки</div>
+        <div class="stat-value" id="stat-deals">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Выиграно</div>
+        <div class="stat-value" id="stat-won">—</div>
+      </div>
+    </div>
+
+    <div class="recent-grid">
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:12px;font-size:13px">Последние сделки</div>
+        <div id="recent-deals">
+          <div class="loading">Загрузка...</div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:12px;font-size:13px">Последние компании</div>
+        <div id="recent-companies">
+          <div class="loading">Загрузка...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/minicrm-out/public/js/api.js"></script>
+  <script src="/minicrm-out/public/js/nav.js"></script>
+  <script>
+    requireAuth();
+    renderNav("dashboard");
+
+    async function loadDashboard() {
+      try {
+        const [deals, companies] = await Promise.allSettled([
+          apiFetch("/deals"),
+          apiFetch("/companies"),
+        ]);
+
+        const dealList = deals.status === "fulfilled" ? deals.value : [];
+        const companyList = companies.status === "fulfilled" ? companies.value : [];
+
+        document.getElementById("stat-companies").textContent = companyList.length;
+        document.getElementById("stat-deals").textContent = dealList.length;
+        document.getElementById("stat-won").textContent = dealList.filter(d => d.stage === "won").length;
+
+        // contacts count
+        try {
+          const contacts = await apiFetch("/contacts");
+          document.getElementById("stat-contacts").textContent = contacts.length;
+        } catch { document.getElementById("stat-contacts").textContent = "—"; }
+
+        // Recent deals
+        const rd = document.getElementById("recent-deals");
+        const recent5 = dealList.slice(-5).reverse();
+        if (!recent5.length) { rd.innerHTML = '<div class="empty">Нет сделок</div>'; }
+        else {
+          rd.innerHTML = recent5.map(d =>
+            '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border-light)">' +
+            '<span>' + d.title + '</span>' +
+            '<span class="badge badge-' + d.stage + '">' + d.stage + '</span>' +
+            '</div>'
+          ).join("");
+        }
+
+        // Recent companies
+        const rc = document.getElementById("recent-companies");
+        const recent5c = companyList.slice(-5).reverse();
+        if (!recent5c.length) { rc.innerHTML = '<div class="empty">Нет компаний</div>'; }
+        else {
+          rc.innerHTML = recent5c.map(c =>
+            '<div style="padding:7px 0;border-bottom:1px solid var(--border-light);font-size:13px">' +
+            '<span>' + c.name + '</span>' +
+            '<span style="color:var(--text-muted);margin-left:8px;font-size:12px">' + (c.industry || "") + '</span>' +
+            '</div>'
+          ).join("");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Контакты — miniCRM</title>
+  <link rel="stylesheet" href="/minicrm-out/public/css/base.css">
+</head>
+
+<body>
+  <div class="page">
+    <div class="top-bar">
+      <div class="page-title">Контакты</div>
+      <button class="btn btn-primary" id="btn-add">+ Добавить</button>
+    </div>
+    <div id="alert"></div>
+    <div class="card">
+      <div id="table-wrap">
+        <div class="loading">Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-title" id="modal-title">Контакт</div>
+      <div id="modal-alert"></div>
+      <div class="form-group">
+        <label>Компания</label>
+        <select id="f-company"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Имя</label>
+          <input type="text" id="f-first-name">
+        </div>
+        <div class="form-group">
+          <label>Фамилия</label>
+          <input type="text" id="f-last-name">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="f-email">
+      </div>
+      <div class="form-group">
+        <label>Телефон</label>
+        <input type="text" id="f-phone">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btn-cancel">Отмена</button>
+        <button class="btn btn-primary" id="btn-save">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/minicrm-out/public/js/api.js"></script>
+  <script src="/minicrm-out/public/js/nav.js"></script>
+  <script>
+    requireAuth();
+    renderNav("contacts");
+
+    let editId = null;
+    let companies = [];
+
+    async function loadCompanies() {
+      try {
+        companies = await apiFetch("/companies");
+        const sel = document.getElementById("f-company");
+        sel.innerHTML = companies.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join("");
+      } catch { }
+    }
+
+    async function loadTable() {
+      const wrap = document.getElementById("table-wrap");
+      try {
+        const list = await apiFetch("/contacts");
+        if (!list.length) { wrap.innerHTML = '<div class="empty">Контакты не найдены</div>'; return; }
+        wrap.innerHTML =
+          '<table><thead><tr><th>Имя</th><th>Компания</th><th>Email</th><th>Телефон</th><th></th></tr></thead>' +
+          '<tbody>' + list.map(c =>
+            '<tr>' +
+            '<td>' + c.first_name + ' ' + c.last_name + '</td>' +
+            '<td>' + (c.company_name || "—") + '</td>' +
+            '<td>' + (c.email || "—") + '</td>' +
+            '<td>' + (c.phone || "—") + '</td>' +
+            '<td class="td-actions">' +
+            '<button class="btn btn-outline" onclick="openEdit(' + JSON.stringify(c).replace(/"/g, '&quot;') + ')">Ред.</button>' +
+            '<button class="btn btn-danger" onclick="del(\'' + c.id + '\')">Удалить</button>' +
+            '</td></tr>'
+          ).join("") + '</tbody></table>';
+      } catch (e) {
+        wrap.innerHTML = '<div class="empty">Ошибка загрузки</div>';
+      }
+    }
+
+    function openModal(title) {
+      document.getElementById("modal-title").textContent = title;
+      document.getElementById("modal-alert").innerHTML = "";
+      document.getElementById("modal").classList.add("open");
+    }
+
+    document.getElementById("btn-add").onclick = () => {
+      editId = null;
+      document.getElementById("f-first-name").value = "";
+      document.getElementById("f-last-name").value = "";
+      document.getElementById("f-email").value = "";
+      document.getElementById("f-phone").value = "";
+      openModal("Новый контакт");
+    };
+
+    function openEdit(c) {
+      editId = c.id;
+      document.getElementById("f-company").value = c.company_id;
+      document.getElementById("f-first-name").value = c.first_name;
+      document.getElementById("f-last-name").value = c.last_name;
+      document.getElementById("f-email").value = c.email || "";
+      document.getElementById("f-phone").value = c.phone || "";
+      openModal("Редактировать контакт");
+    }
+
+    document.getElementById("btn-cancel").onclick = () => document.getElementById("modal").classList.remove("open");
+
+    document.getElementById("btn-save").onclick = async () => {
+      const body = {
+        company_id: document.getElementById("f-company").value,
+        first_name: document.getElementById("f-first-name").value,
+        last_name: document.getElementById("f-last-name").value,
+        email: document.getElementById("f-email").value || null,
+        phone: document.getElementById("f-phone").value || null,
+      };
+      const ma = document.getElementById("modal-alert");
+      try {
+        if (editId) {
+          await apiFetch("/contacts/" + editId, { method: "PUT", body: JSON.stringify(body) });
+        } else {
+          await apiFetch("/contacts", { method: "POST", body: JSON.stringify(body) });
+        }
+        document.getElementById("modal").classList.remove("open");
+        loadTable();
+      } catch (err) {
+        const details = err.data?.errors;
+        const msg = Array.isArray(details) ? details.map(d => d.message).join(", ") : err.data?.error || "Ошибка";
+        showAlert(ma, msg);
+      }
+    };
+
+    async function del(id) {
+      if (!confirm("Удалить контакт?")) return;
+      try {
+        await apiFetch("/contacts/" + id, { method: "DELETE" });
+        loadTable();
+      } catch (e) {
+        showAlert(document.getElementById("alert"), "Не удалось удалить");
+      }
+    }
+
+    loadCompanies();
+    loadTable();
+  </script>
+</body>
+
+</html>

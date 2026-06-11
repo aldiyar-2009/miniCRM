@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Компании — miniCRM</title>
+  <link rel="stylesheet" href="/minicrm-out/public/css/base.css">
+</head>
+
+<body>
+  <div class="page">
+    <div class="top-bar">
+      <div class="page-title">Компании</div>
+      <button class="btn btn-primary" id="btn-add">+ Добавить</button>
+    </div>
+    <div id="alert"></div>
+    <div class="card">
+      <div id="table-wrap">
+        <div class="loading">Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-title" id="modal-title">Компания</div>
+      <div id="modal-alert"></div>
+      <div class="form-group">
+        <label>Название</label>
+        <input type="text" id="f-name" placeholder="Название компании">
+      </div>
+      <div class="form-group">
+        <label>Отрасль</label>
+        <input type="text" id="f-industry" placeholder="Технологии">
+      </div>
+      <div class="form-group">
+        <label>Сайт</label>
+        <input type="url" id="f-website" placeholder="https://example.com">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btn-cancel">Отмена</button>
+        <button class="btn btn-primary" id="btn-save">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/minicrm-out/public/js/api.js"></script>
+  <script src="/minicrm-out/public/js/nav.js"></script>
+  <script>
+    requireAuth();
+    renderNav("companies");
+
+    let editId = null;
+
+    async function loadTable() {
+      const wrap = document.getElementById("table-wrap");
+      try {
+        const list = await apiFetch("/companies");
+        if (!list.length) { wrap.innerHTML = '<div class="empty">Компании не найдены</div>'; return; }
+        wrap.innerHTML =
+          '<table><thead><tr><th>Название</th><th>Отрасль</th><th>Сайт</th><th>Создана</th><th></th></tr></thead>' +
+          '<tbody>' + list.map(c =>
+            '<tr>' +
+            '<td><strong>' + c.name + '</strong></td>' +
+            '<td>' + (c.industry || "—") + '</td>' +
+            '<td>' + (c.website ? '<a href="' + c.website + '" target="_blank" style="color:var(--primary)">' + c.website + '</a>' : '—') + '</td>' +
+            '<td>' + formatDate(c.created_at) + '</td>' +
+            '<td class="td-actions">' +
+            '<button class="btn btn-outline" onclick="openEdit(\'' + c.id + '\',\'' + esc(c.name) + '\',\'' + esc(c.industry) + '\',\'' + esc(c.website) + '\')">Ред.</button>' +
+            '<button class="btn btn-danger" onclick="del(\'' + c.id + '\')">Удалить</button>' +
+            '</td></tr>'
+          ).join("") + '</tbody></table>';
+      } catch (e) {
+        wrap.innerHTML = '<div class="empty">Ошибка загрузки</div>';
+      }
+    }
+
+    function esc(s) { return (s || "").replace(/'/g, "\\'").replace(/"/g, "&quot;"); }
+
+    function openModal(title, id, name, industry, website) {
+      editId = id || null;
+      document.getElementById("modal-title").textContent = title;
+      document.getElementById("f-name").value = name || "";
+      document.getElementById("f-industry").value = industry || "";
+      document.getElementById("f-website").value = website || "";
+      document.getElementById("modal-alert").innerHTML = "";
+      document.getElementById("modal").classList.add("open");
+    }
+
+    document.getElementById("btn-add").onclick = () => openModal("Новая компания");
+    function openEdit(id, name, industry, website) { openModal("Редактировать компанию", id, name, industry, website); }
+    document.getElementById("btn-cancel").onclick = () => document.getElementById("modal").classList.remove("open");
+
+    document.getElementById("btn-save").onclick = async () => {
+      const body = {
+        name: document.getElementById("f-name").value,
+        industry: document.getElementById("f-industry").value,
+        website: document.getElementById("f-website").value,
+      };
+      const ma = document.getElementById("modal-alert");
+      try {
+        if (editId) {
+          await apiFetch("/companies/" + editId, { method: "PUT", body: JSON.stringify(body) });
+        } else {
+          await apiFetch("/companies", { method: "POST", body: JSON.stringify(body) });
+        }
+        document.getElementById("modal").classList.remove("open");
+        loadTable();
+      } catch (err) {
+        const details = err.data?.errors;
+        const msg = Array.isArray(details) ? details.map(d => d.message).join(", ") : err.data?.error || "Ошибка";
+        showAlert(ma, msg);
+      }
+    };
+
+    async function del(id) {
+      if (!confirm("Удалить компанию?")) return;
+      try {
+        await apiFetch("/companies/" + id, { method: "DELETE" });
+        loadTable();
+      } catch (e) {
+        showAlert(document.getElementById("alert"), "Не удалось удалить");
+      }
+    }
+
+    loadTable();
+  </script>
+</body>
+
+</html>

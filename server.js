@@ -1,6 +1,10 @@
 require("dotenv").config();
 
 const { app, server } = require("./src/app");
+require("./src/queue/bulkMoveWorker");
+require("./src/queue/emailWorker");
+
+require("./src/queue/scheduler");
 
 const PORT = process.env.PORT || 3000;
 
