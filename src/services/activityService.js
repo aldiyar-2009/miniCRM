@@ -35,6 +35,12 @@ class ActivityService {
       data.completed,
     );
 
+    const io = require("../../src/app").app?.locals?.io;
+
+    if (io) {
+      io.to(`user:${activity.user_id}`).emit("activity_created", activity);
+    }
+
     return activity;
   }
 

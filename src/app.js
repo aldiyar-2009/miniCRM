@@ -6,6 +6,9 @@ const path = require("path");
 const fs = require("fs");
 const rateLimit = require("express-rate-limit");
 const multer = require("multer");
+const errorHandler = require("./middleware/errorHandler");
+
+const compression = require("compression");
 
 const app = express();
 const server = require("http").createServer(app);
@@ -23,7 +26,9 @@ const dealColumnsRoutes = require("./routes/dealColumnsRoutes");
 const callDealRoutes = require("./routes/callDealRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 
-const errorHandler = require("./middleware/errorHandler");
+const { initSocket } = require("./socket/socket");
+
+app.use(compression());
 
 //безопасность
 const whitelist = [
@@ -31,6 +36,8 @@ const whitelist = [
   "http://127.0.0.1:3000",
   "http://localhost:5500",
   "http://127.0.0.1:5500",
+  "http://localhost:5501",
+  "http://127.0.0.1:5501",
 ];
 
 const corsOptions = {
@@ -165,6 +172,8 @@ app.use(statsRoutes);
 app.use(dealColumnsRoutes);
 app.use(callDealRoutes);
 app.use(notificationRoutes);
+const io = initSocket(server);
+app.locals.io = io;
 
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger_output.json");

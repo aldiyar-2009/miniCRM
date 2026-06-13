@@ -1,0 +1,163 @@
+.kanban-wrap {
+  padding: 20px 24px;
+  height: calc(100vh - var(--nav-height));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.kanban-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.kanban-toolbar-left { display: flex; align-items: center; gap: 10px; }
+.kanban-toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+.bulk-info { font-size: 13px; color: var(--text-muted); }
+
+/* Доска */
+.kanban-board {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  flex: 1;
+  padding-bottom: 12px;
+  align-items: flex-start;
+}
+
+/* Столбец */
+.k-column {
+  width: 240px;
+  min-width: 240px;
+  background: var(--white);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+}
+
+.k-col-header {
+  padding: 12px 14px 10px;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.k-col-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.k-col-count {
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(0,0,0,0.1);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.k-col-menu { background: none; border: none; cursor: pointer; font-size: 16px; color: rgba(0,0,0,0.4); padding: 2px 4px; border-radius: 4px; }
+.k-col-menu:hover { background: rgba(0,0,0,0.08); }
+
+.k-col-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  min-height: 60px;
+}
+
+.k-col-footer {
+  padding: 8px;
+  flex-shrink: 0;
+}
+
+.btn-add-card {
+  width: 100%;
+  padding: 7px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+}
+.btn-add-card:hover { background: var(--bg); color: var(--text); border-color: #bbb; }
+
+/* Карточка */
+.k-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  position: relative;
+  transition: box-shadow 0.1s;
+}
+.k-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-color: #ccc; }
+.k-card.selected { border-color: var(--primary); background: #f0f3ff; }
+.k-card.sortable-ghost { opacity: 0.35; }
+
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; }
+.card-client-name { font-weight: 600; font-size: 13px; flex: 1; }
+.card-menu-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 16px; padding: 0 2px; line-height: 1; flex-shrink: 0; }
+.card-menu-btn:hover { color: var(--text); }
+
+.card-phone-row { display: flex; align-items: center; gap: 5px; margin-top: 4px; color: var(--text-muted); font-size: 12px; }
+.card-phone-row span { color: var(--text); }
+.card-checkbox { position: absolute; bottom: 8px; right: 10px; width: 14px; height: 14px; cursor: pointer; }
+
+.card-callback-badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-top: 6px;
+  background: #fff3e0;
+  color: #b45309;
+  font-weight: 500;
+}
+.card-callback-badge.overdue { background: #fff0f0; color: var(--danger); }
+
+/* Попап карточки */
+.card-popup {
+  position: fixed;
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  width: 260px;
+  z-index: 150;
+  padding: 20px;
+  border: 1px solid var(--border);
+}
+.popup-close {
+  position: absolute;
+  top: 8px; right: 10px;
+  background: none; border: none;
+  font-size: 20px; cursor: pointer;
+  color: var(--text-muted); line-height: 1;
+}
+.popup-section-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 12px 0 3px; }
+.popup-value { font-size: 14px; color: var(--text); }
+.popup-phone { font-size: 18px; font-weight: 700; color: var(--primary); }
+.popup-notes { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 12px; font-family: inherit; resize: vertical; min-height: 70px; color: var(--text); margin-top: 4px; }
+.popup-btn-row { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+.popup-btn-row .btn { justify-content: center; font-size: 12px; }
