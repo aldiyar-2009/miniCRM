@@ -1,0 +1,41 @@
+services:
+  - type: web_service
+    name: miniCRM
+    env: docker
+    branch: main
+    plan: starter
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: ACCESS_TOKEN_SECRET
+        generate:
+          length: 64
+      - key: REFRESH_TOKEN_SECRET
+        generate:
+          length: 64
+      - key: DB_HOST
+        value: "<PUT_DB_HOST>"
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_USER
+        value: "<PUT_DB_USER>"
+      - key: DB_PASSWORD
+        value: "<PUT_DB_PASSWORD>"
+      - key: DB_NAME
+        value: "<PUT_DB_NAME>"
+      - key: REDIS_HOST
+        value: "<PUT_REDIS_HOST>"
+      - key: REDIS_PORT
+        value: "6379"
+      - key: REDIS_PASSWORD
+        value: "<PUT_REDIS_PASSWORD>"
+      - key: SMTP_USER
+        value: "<PUT_SMTP_USER>"
+      - key: SMTP_PASS
+        value: "<PUT_SMTP_PASS>"
+      - key: CORS_ORIGINS
+        value: "https://your-render-app.onrender.com"
