@@ -1,17 +1,29 @@
-FROM node:20-alpine
-
-WORKDIR /usr/src/app
+# ── Stage 1: зависимости ──────────────────────────────────────────
+FROM node:20-alpine AS deps
+WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+# Устанавливаем только prod-зависимости
+RUN npm ci --omit=dev
 
+# ── Stage 2: финальный образ ──────────────────────────────────────
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Нужен для bcrypt и нативных модулей
+RUN apk add --no-cache python3 make g++
+
+# Копируем зависимости из первого этапа
+COPY --from=deps /app/node_modules ./node_modules
+
+# Копируем исходники
 COPY . .
 
-RUN chmod +x ./wait-for-db.sh
+# Папка для логов
+RUN mkdir -p logs
 
-ENV NODE_ENV=production
-ENV PORT=3000
-
+# Порт приложения (Railway/Render сами его пробрасывают)
 EXPOSE 3000
 
-CMD ["sh", "-c", "npm run migrate:prod && npm start"]
+# Сначала запускаем миграции, потом сервер
+CMD ["sh", "-c", "npm run migrate && node server.js"]

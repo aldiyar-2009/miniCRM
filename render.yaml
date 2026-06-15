@@ -1,54 +1,53 @@
+# render.yaml — автоматический деплой на Render.com
+# Задокументируйте на https://render.com/docs/blueprint-spec
+
 services:
+  # ── Web Service (Node.js приложение) ────────────────────────────
   - type: web
-    name: miniCRM
-    runtime: docker
-    branch: main
-    plan: starter
-    dockerfilePath: Dockerfile
-    autoDeployTrigger: commit
+    name: minicrm
+    runtime: docker          # Render соберёт Dockerfile автоматически
+    plan: free
+    healthCheckPath: /api/health   # добавьте этот эндпоинт (см. README)
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: "3000"
-      - key: ACCESS_TOKEN_SECRET
-        generateValue: true
-      - key: REFRESH_TOKEN_SECRET
-        generateValue: true
-      - key: CORS_ORIGINS
-        value: "https://your-render-app.onrender.com"
+        value: 3000
+      # PostgreSQL — берём из сервиса ниже
       - key: DB_HOST
         fromDatabase:
-          name: miniCRM-db
+          name: minicrm-db
           property: host
       - key: DB_PORT
         fromDatabase:
-          name: miniCRM-db
+          name: minicrm-db
           property: port
       - key: DB_USER
         fromDatabase:
-          name: miniCRM-db
+          name: minicrm-db
           property: user
       - key: DB_PASSWORD
         fromDatabase:
-          name: miniCRM-db
+          name: minicrm-db
           property: password
       - key: DB_NAME
         fromDatabase:
-          name: miniCRM-db
+          name: minicrm-db
           property: database
+      # Redis — вставьте вручную из Upstash (см. инструкцию)
       - key: REDIS_HOST
-        value: "<PUT_REDIS_HOST>"
+        sync: false          # заполните в Dashboard → Environment
       - key: REDIS_PORT
-        value: "6379"
+        sync: false
       - key: REDIS_PASSWORD
         sync: false
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
-        sync: false
+      # Секреты — заполнить вручную!
+      - key: JWT_SECRET
+        generateValue: true  # Render сгенерирует автоматически
 
+  # ── PostgreSQL (бесплатный инстанс на Render) ──────────────────
 databases:
-  - name: miniCRM-db
-    postgresMajorVersion: "18"
+  - name: minicrm-db
+    plan: free
     databaseName: minicrm
+    user: minicrm_user
