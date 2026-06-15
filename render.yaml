@@ -1,41 +1,54 @@
 services:
-  - type: service
+  - type: web
     name: miniCRM
-    environment: docker
+    runtime: docker
     branch: main
     plan: starter
     dockerfilePath: Dockerfile
-    autoDeploy: true
+    autoDeployTrigger: commit
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: "3000"
       - key: ACCESS_TOKEN_SECRET
-        generate:
-          length: 64
+        generateValue: true
       - key: REFRESH_TOKEN_SECRET
-        generate:
-          length: 64
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "https://your-render-app.onrender.com"
       - key: DB_HOST
-        value: "<PUT_DB_HOST>"
+        fromDatabase:
+          name: miniCRM-db
+          property: host
       - key: DB_PORT
-        value: "5432"
+        fromDatabase:
+          name: miniCRM-db
+          property: port
       - key: DB_USER
-        value: "<PUT_DB_USER>"
+        fromDatabase:
+          name: miniCRM-db
+          property: user
       - key: DB_PASSWORD
-        value: "<PUT_DB_PASSWORD>"
+        fromDatabase:
+          name: miniCRM-db
+          property: password
       - key: DB_NAME
-        value: "<PUT_DB_NAME>"
+        fromDatabase:
+          name: miniCRM-db
+          property: database
       - key: REDIS_HOST
         value: "<PUT_REDIS_HOST>"
       - key: REDIS_PORT
         value: "6379"
       - key: REDIS_PASSWORD
-        value: "<PUT_REDIS_PASSWORD>"
+        sync: false
       - key: SMTP_USER
-        value: "<PUT_SMTP_USER>"
+        sync: false
       - key: SMTP_PASS
-        value: "<PUT_SMTP_PASS>"
-      - key: CORS_ORIGINS
-        value: "https://your-render-app.onrender.com"
+        sync: false
+
+databases:
+  - name: miniCRM-db
+    postgresMajorVersion: "18"
+    databaseName: minicrm
