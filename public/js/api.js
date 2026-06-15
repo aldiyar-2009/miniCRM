@@ -1,4 +1,28 @@
-const API_BASE = "http://localhost:3000";
+const API_BASE = window.API_BASE || window.location.origin;
+window.API_BASE = API_BASE;
+const RATE_LIMIT = 50;
+const RATE_WINDOW_MS = 60 * 1000;
+let requestTimestamps = [];
+
+function nowMs() {
+  return Date.now();
+}
+
+async function waitForRateSlot() {
+  for (;;) {
+    const now = nowMs();
+    requestTimestamps = requestTimestamps.filter(
+      (t) => now - t < RATE_WINDOW_MS,
+    );
+    if (requestTimestamps.length < RATE_LIMIT) {
+      requestTimestamps.push(now);
+      return;
+    }
+    const earliest = requestTimestamps[0];
+    const wait = RATE_WINDOW_MS - (now - earliest) + 50;
+    await new Promise((r) => setTimeout(r, wait));
+  }
+}
 
 function getToken() {
   return localStorage.getItem("accessToken");
@@ -45,6 +69,7 @@ async function tryRefresh() {
 }
 
 async function apiFetch(path, options = {}) {
+  await waitForRateSlot();
   const token = getToken();
   const isFormData = options.body instanceof FormData;
   const headers = { ...(options.headers || {}) };
@@ -52,6 +77,15 @@ async function apiFetch(path, options = {}) {
   if (token) headers["Authorization"] = "Bearer " + token;
 
   let res = await fetch(API_BASE + path, { ...options, headers });
+
+  let retries = 0;
+  while (res.status === 429 && retries < 4) {
+    const backoff = Math.pow(2, retries) * 500 + Math.random() * 200;
+    await new Promise((r) => setTimeout(r, backoff));
+    await waitForRateSlot();
+    res = await fetch(API_BASE + path, { ...options, headers });
+    retries++;
+  }
 
   if (res.status === 401) {
     const ok = await tryRefresh();

@@ -1,15 +1,15 @@
 const db = require("../database/db");
 
 class userRepasitories {
-  async createUser(name, email, password, role) {
-    const [user] = await db("users")
-      .insert({
-        name,
-        email,
-        password: db.raw("crypt(?, gen_salt('bf', 6))", [password]),
-        role,
-      })
-      .returning("*");
+  async createUser(data) {
+    const insertData = {
+      name: data.name,
+      email: data.email,
+      password: db.raw("crypt(?, gen_salt('bf', 6))", [data.password]),
+      role: data.role || "manager",
+      company_id: data.company_id || null,
+    };
+    const [user] = await db("users").insert(insertData).returning("*");
     return user;
   }
 
@@ -69,6 +69,12 @@ class userRepasitories {
       .leftJoin("users", "deals.owner_id", "users.id")
       .leftJoin("companies", "deals.company_id", "companies.id")
       .orderBy("companies.created_at", "desc");
+  }
+
+  async setCompanyOwner(companyId, userId) {
+    return db("companies")
+      .where({ id: companyId })
+      .update({ owner_id: userId });
   }
 }
 

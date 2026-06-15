@@ -6,6 +6,26 @@ const dealColumnsRepositories = require("../repositories/dealColumnsRepository")
 const callDealRepository = require("../repositories/callDealRepository");
 
 class callDealService {
+  sanitizeDealPayload(data) {
+    const allowedKeys = new Set([
+      "column_id",
+      "contact_id",
+      "assigned_to",
+      "phone",
+      "name",
+      "description",
+      "callback_at",
+      "position",
+      "created_by",
+    ]);
+
+    return Object.fromEntries(
+      Object.entries(data).filter(
+        ([key, value]) => allowedKeys.has(key) && value !== undefined,
+      ),
+    );
+  }
+
   async getAll() {
     return callDealRepository.getAll();
   }
@@ -16,7 +36,7 @@ class callDealService {
       throw new AppError("Столбец не найден", 404);
     }
 
-    return callDealRepository.getByColimnId(columnId);
+    return callDealRepository.getByColumnId(columnId);
   }
 
   async getById(id) {
@@ -28,11 +48,22 @@ class callDealService {
   }
 
   async create(data) {
-    const column = await dealColumnsRepositories.getById(data.columnId);
+    const columnId = data.columnId || data.column_id;
+    if (!columnId) {
+      throw new AppError("Не указан идентификатор столбца", 400);
+    }
+
+    const column = await dealColumnsRepositories.getById(columnId);
     if (!column) {
       throw new AppError("Столбец не найден", 404);
     }
-    return column;
+
+    const payload = {
+      ...data,
+      column_id: columnId,
+    };
+
+    return await callDealRepository.create(this.sanitizeDealPayload(payload));
   }
 
   async update(id, data) {
@@ -41,7 +72,12 @@ class callDealService {
       throw new AppError("Сделка не найдена", 404);
     }
 
-    return await callDealRepository.update(id, data);
+    const payload = {
+      ...data,
+      column_id: data.columnId || data.column_id,
+    };
+
+    return await callDealRepository.update(id, this.sanitizeDealPayload(payload));
   }
 
   async delete(id) {

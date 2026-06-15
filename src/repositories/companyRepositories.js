@@ -1,14 +1,9 @@
 const db = require("../database/db");
 
 class companyRepasitories {
-  async createCompany(name, industry, website) {
-    const [company] = await db("companies")
-      .insert({
-        name,
-        industry,
-        website,
-      })
-      .returning("*");
+  // Принимает объект данных { name, industry, website, secret_code, description }
+  async createCompany(data) {
+    const [company] = await db("companies").insert(data).returning("*");
     return company;
   }
 
@@ -22,6 +17,13 @@ class companyRepasitories {
 
   async getCompanyByName(name) {
     return db("companies").select("*").where({ name }).first();
+  }
+
+  async getCompanyBySecret(secretCode) {
+    return db("companies")
+      .select("*")
+      .where({ secret_code: secretCode })
+      .first();
   }
 
   async updateCompany(id, data) {

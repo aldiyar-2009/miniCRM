@@ -47,7 +47,7 @@
     <script>
         requireAuth();
         const me = getUser();
-        if (me?.role !== "admin") window.location.href = "/html/kanban.html";
+        if (me?.role !== "admin") window.location.href = "./html/kanban.html";
         renderNav("users");
 
         let editId = null;

@@ -30,7 +30,8 @@
         </div>
     </div>
 
-    <!-- Модалка новой/редакт. карточки -->
+
+    <!-- Модалка новой/редакт. карточки — поле компании удалено -->
     <div class="modal-overlay" id="deal-modal">
         <div class="modal" style="width:460px">
             <div class="modal-title" id="deal-modal-title">Новый звонок</div>
@@ -38,18 +39,17 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <div class="form-group"><label>Телефон *</label><input type="text" id="f-phone"
                         placeholder="+7 777 000 00 00"></div>
-                <div class="form-group"><label>Имя клиента</label><input type="text" id="f-cname"
+                <div class="form-group"><label>Имя клиента *</label><input type="text" id="f-cname"
                         placeholder="Иван Иванов"></div>
             </div>
-            <div class="form-group"><label>Компания</label><input type="text" id="f-company"
-                    placeholder="Tech Solutions"></div>
+            <!-- Компания удалена — берётся автоматически из профиля пользователя -->
             <div class="form-group"><label>Заметки</label><textarea id="f-notes" rows="3"
                     placeholder="Called once, didn't answer."></textarea></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <div class="form-group"><label>Перезвонить</label><input type="datetime-local" id="f-callback"></div>
                 <div class="form-group"><label>Назначить</label><select id="f-assigned"></select></div>
             </div>
-            <div class="form-group"><label>Столбец</label><select id="f-column"></select></div>
+            <div class="form-group"><label>Столбец *</label><select id="f-column"></select></div>
             <div class="modal-footer">
                 <button class="btn btn-outline" id="deal-cancel">Отмена</button>
                 <button class="btn btn-primary" id="deal-save">Сохранить</button>

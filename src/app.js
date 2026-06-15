@@ -31,18 +31,20 @@ const { initSocket } = require("./socket/socket");
 app.use(compression());
 
 //безопасность
-const whitelist = [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500",
-  "http://localhost:5501",
-  "http://127.0.0.1:5501",
-];
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((item) => item.trim())
+  : [
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "http://localhost:5500",
+      "http://127.0.0.1:5500",
+      "http://127.0.0.1:5501",
+      "http://localhost:5501",
+    ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || whitelist.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Не разрешено политикой безопасности CORS"));
@@ -60,7 +62,7 @@ app.use(express.urlencoded({ extended: true }));
 // Ограничение количества запросов на сервер
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500,
   message: "Слишком много запросов с этого IP, попробуйте позже.",
 });
 app.use(limiter);
@@ -154,8 +156,8 @@ app.use(
   ),
 );
 
-// подключение к фронту
-app.use(express.static(path.join(__dirname, "../public/index.html")));
+// подключение к фронту — раздаём папку `public`
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 // роуты
 app.use(companyRoutes);

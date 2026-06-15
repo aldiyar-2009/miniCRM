@@ -8,7 +8,7 @@ class companyService {
     if (existingCompany) {
       throw new AppError("Компания уже зарегистрирована", 409);
     }
-    return companyRepasitories.createCompany(name, industry, website);
+    return companyRepasitories.createCompany({ name, industry, website });
   }
 
   async getAllCompanies() {

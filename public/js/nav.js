@@ -12,29 +12,34 @@ function renderNav(activePage) {
 
   const links = [
     {
-      href: "/minicrm-out/public/html/kanban.html",
+      href: "kanban.html",
       label: "Leads & Calls",
       key: "kanban",
     },
     {
-      href: "/minicrm-out/public/html/dashboard.html",
+      href: "dashboard.html",
       label: "Dashboard",
       key: "dashboard",
     },
     {
-      href: "/minicrm-out/public/html/companies.html",
+      href: "companies.html",
       label: "Компании",
       key: "companies",
     },
     {
-      href: "/minicrm-out/public/html/contacts.html",
+      href: "contacts.html",
       label: "Контакты",
       key: "contacts",
+    },
+    {
+      href: "chat.html",
+      label: "Чат",
+      key: "chat",
     },
   ];
   if (isAdmin)
     links.push({
-      href: "/html/users.html",
+      href: "./users.html",
       label: "Пользователи",
       key: "users",
     });
@@ -56,7 +61,7 @@ function renderNav(activePage) {
     "afterbegin",
     `
     <nav class="top-nav">
-      <a class="nav-brand" href="/html/kanban.html">miniCRM</a>
+      <a class="nav-brand" href="kanban.html">miniCRM</a>
       <div class="nav-links">${linksHtml}</div>
       <div class="nav-right">
         <div class="nav-bell-wrap" id="bell-wrap">
@@ -119,7 +124,7 @@ function renderNav(activePage) {
 
   document.getElementById("logout-btn").addEventListener("click", () => {
     clearTokens();
-    window.location.href = "/html/login.html";
+    window.location.href = "login.html";
   });
 
   loadNotifications();
@@ -152,7 +157,9 @@ async function loadNotifications() {
           "</div>",
       )
       .join("");
-  } catch {}
+  } catch (error) {
+    console.error("Error loading notifications:", error);
+  }
 }
 
 async function markNotifRead(id) {

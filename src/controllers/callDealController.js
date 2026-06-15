@@ -28,10 +28,7 @@ class callDealController {
 
   async getById(req, res, next) {
     try {
-      const deal = await callDealService.create({
-        ...req.body,
-        created_by: req.user.id,
-      });
+      const deal = await callDealService.getById(req.params.id);
       res.status(200).json(deal);
     } catch (error) {
       next(error);

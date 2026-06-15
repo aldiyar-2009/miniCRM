@@ -50,4 +50,4 @@ class deal_stage_history {
   }
 }
 
-module.exports = new DealRepository();
+module.exports = new deal_stage_history();

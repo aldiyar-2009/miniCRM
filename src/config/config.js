@@ -1,6 +1,4 @@
 require("dotenv").config();
-const Redis = require("ioredis");
-const redis = new Redis();
 module.exports = {
   port: process.env.PORT || 3000,
   db: {
@@ -13,6 +11,7 @@ module.exports = {
   },
   redis: {
     host: process.env.REDIS_HOST || "127.0.0.1",
-    port: parseInt(process.env.REDIS_PORT) || 6379,
+    port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+    password: process.env.REDIS_PASSWORD || undefined,
   },
 };

@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const { app, server } = require("./src/app");
+const { server } = require("./src/app");
 require("./src/queue/bulkMoveWorker");
 require("./src/queue/emailWorker");
 

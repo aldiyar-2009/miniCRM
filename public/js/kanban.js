@@ -16,10 +16,15 @@ let activePopup = null;
 async function loadBoard() {
   const board = document.getElementById("board");
   try {
+    const usersPromise =
+      me?.role === "admin"
+        ? apiFetch("/users").catch(() => [])
+        : Promise.resolve([me].filter(Boolean));
+
     const [cols, deals, users] = await Promise.all([
       apiFetch("/deal-columns"),
       apiFetch("/call-deals"),
-      apiFetch("/users").catch(() => []),
+      usersPromise,
     ]);
     columns = cols;
     allDeals = deals;
@@ -326,7 +331,8 @@ function openAdd(colId) {
   document.getElementById("deal-modal-title").textContent = "Новый звонок";
   document.getElementById("f-phone").value = "";
   document.getElementById("f-cname").value = "";
-  document.getElementById("f-company").value = "";
+  const fCompanyEl = document.getElementById("f-company");
+  if (fCompanyEl) fCompanyEl.value = "";
   document.getElementById("f-notes").value = "";
   document.getElementById("f-callback").value = "";
   document.getElementById("f-column").value = colId;
@@ -340,7 +346,8 @@ function openEdit(deal) {
   document.getElementById("deal-modal-title").textContent = "Редактировать";
   document.getElementById("f-phone").value = deal.phone || "";
   document.getElementById("f-cname").value = deal.name || "";
-  document.getElementById("f-company").value = deal.company || "";
+  const fCompanyEl2 = document.getElementById("f-company");
+  if (fCompanyEl2) fCompanyEl2.value = deal.company || "";
   document.getElementById("f-notes").value = deal.description || "";
   document.getElementById("f-callback").value = deal.callback_at
     ? new Date(deal.callback_at).toISOString().slice(0, 16)
@@ -362,7 +369,6 @@ document.getElementById("deal-save").onclick = async () => {
     column_id: colId,
     phone: document.getElementById("f-phone").value,
     name: document.getElementById("f-cname").value || null,
-    company: document.getElementById("f-company").value || null,
     description: document.getElementById("f-notes").value || null,
     callback_at: document.getElementById("f-callback").value || null,
     assigned_to: document.getElementById("f-assigned").value || me?.id,
@@ -446,7 +452,7 @@ async function deleteDeal(id) {
 // ── SOCKET.IO ────────────────────────────────────────────────
 function connectSocket() {
   if (typeof io === "undefined") return;
-  const socket = io("/", {
+  const socket = io(API_BASE, {
     auth: { token: getToken() },
     reconnectionAttempts: 5,
   });

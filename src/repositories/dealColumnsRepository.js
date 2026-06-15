@@ -23,7 +23,9 @@ class dealColumnRepasitory {
   }
 
   async delete(id) {
-    const [column] = await db("deal_columns").where({ id }).delete();
+    // Сначала получаем запись, затем удаляем — .delete() возвращает число удалённых строк
+    const column = await db("deal_columns").where({ id }).first();
+    await db("deal_columns").where({ id }).delete();
     return column;
   }
 

@@ -7,28 +7,28 @@ const callDealHistoryRepository = require("../repositories/callDealHistoryReposi
 const bulkMoveWorker = new Worker(
   "bulk-move",
   async (job) => {
-    const { dealsIds, targetColumn, movedBy, sourceColumnId } = job.data;
+    const { dealIds, targetColumnId, movedBy, sourceColumnId } = job.data;
 
     const batchSize = 10;
-    for (let i = 0; i < dealsIds.length; i += batchSize) {
-      const batch = dealsIds.slice(i, i + batchSize);
+    for (let i = 0; i < dealIds.length; i += batchSize) {
+      const batch = dealIds.slice(i, i + batchSize);
 
-      await callDealRepositories.bulkMoveToColumn(batch, targetColumn);
+      await callDealRepositories.bulkMoveToColumn(batch, targetColumnId);
 
-      const historyRecords = batch.map((dealsIds) => ({
+      const historyRecords = batch.map((dealId) => ({
         call_deal_id: dealId,
         from_column: sourceColumnId,
-        to_column: targetColumn,
+        to_column: targetColumnId,
         moved_by: movedBy,
       }));
-      await db("call_deal_history").insert(historyRecords);
+      await callDealHistoryRepository.bulkCreate(historyRecords);
 
-      const progress = Math.round(((i + batch.length) / dealsIds.length) * 100);
+      const progress = Math.round(((i + batch.length) / dealIds.length) * 100);
 
       await job.updateProgress(progress);
     }
 
-    return { moved: dealsIds.length };
+    return { moved: dealIds.length };
   },
   { connection },
 );
@@ -37,7 +37,7 @@ bulkMoveWorker.on("completed", (job) => {
   console.log(`bulk move job ${job.id} завершен`);
 });
 
-bulkMoveWorker.on("failed", (job) => {
+bulkMoveWorker.on("failed", (job, err) => {
   console.log(`bulk move job ${job.id} упал:`, err.message);
 });
 

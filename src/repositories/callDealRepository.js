@@ -4,7 +4,7 @@ class callDealRepository {
   async getAll() {
     return db("call_deals").select("*");
   }
-  async getByColimnId(columnId) {
+  async getByColumnId(columnId) {
     return db("call_deals")
       .where({ column_id: columnId })
       .orderBy("position", "asc");
@@ -23,7 +23,7 @@ class callDealRepository {
         "deal_columns.name AS column_name",
         "users.name AS assigned_name",
       )
-      .leftJoin("deals_columns", "call_deals.column_id", "deal_colimns.id")
+      .leftJoin("deal_columns", "call_deals.column_id", "deal_columns.id")
       .leftJoin("users", "call_deals.assigned_to", "users.id")
       .where("call_deals.id", id)
       .first();
