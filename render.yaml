@@ -1,7 +1,7 @@
 services:
-  - type: web_service
+  - type: service
     name: miniCRM
-    env: docker
+    environment: docker
     branch: main
     plan: starter
     dockerfilePath: Dockerfile
