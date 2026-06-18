@@ -1,4 +1,4 @@
-const API_BASE = window.API_BASE || window.location.origin;
+const API_BASE = "http://localhost:3000";
 window.API_BASE = API_BASE;
 const RATE_LIMIT = 50;
 const RATE_WINDOW_MS = 60 * 1000;
@@ -9,7 +9,7 @@ function nowMs() {
 }
 
 async function waitForRateSlot() {
-  for (;;) {
+  while (true) {
     const now = nowMs();
     requestTimestamps = requestTimestamps.filter(
       (t) => now - t < RATE_WINDOW_MS,

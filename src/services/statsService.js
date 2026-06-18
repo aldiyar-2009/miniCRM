@@ -1,41 +1,42 @@
-const companyRepository = require("../repositories/companyRepositories");
-const contactRepository = require("../repositories/contactRepositories");
-const dealRepository = require("../repositories/dealsRepositories");
-const userRepository = require("../repositories/userRepositories");
+const db = require("../database/db");
 
 class StatsService {
   async getStats() {
     const [companiesResult, contactsResult, dealsResult, usersResult] =
       await Promise.allSettled([
-        companyRepository.getAllCompanies(),
-        contactRepository.getAllContacts(),
-        dealRepository.getAllDeals(),
-        userRepository.getAllUser(),
+        db("companies").count("id as count").first(),
+        db("contacts").count("id as count").first(),
+        db("deals").count("id as count").first(),
+        db("users").count("id as count").first(),
       ]);
 
     return {
       companies: {
         count:
           companiesResult.status === "fulfilled"
-            ? companiesResult.value.length
+            ? parseInt(companiesResult.value.count, 10)
             : null,
         available: companiesResult.status === "fulfilled",
       },
       contacts: {
         count:
           contactsResult.status === "fulfilled"
-            ? contactsResult.value.length
+            ? parseInt(contactsResult.value.count, 10)
             : null,
         available: contactsResult.status === "fulfilled",
       },
       deals: {
         count:
-          dealsResult.status === "fulfilled" ? dealsResult.value.length : null,
+          dealsResult.status === "fulfilled"
+            ? parseInt(dealsResult.value.count, 10)
+            : null,
         available: dealsResult.status === "fulfilled",
       },
       users: {
         count:
-          usersResult.status === "fulfilled" ? usersResult.value.length : null,
+          usersResult.status === "fulfilled"
+            ? parseInt(usersResult.value.count, 10)
+            : null,
         available: usersResult.status === "fulfilled",
       },
     };

@@ -11,7 +11,9 @@ module.exports = {
   },
   redis: {
     host: process.env.REDIS_HOST || "127.0.0.1",
-    port: parseInt(process.env.REDIS_PORT, 10) || 6379,
-    password: process.env.REDIS_PASSWORD || undefined,
+    port: parseInt(process.env.REDIS_PORT) || 6379,
+  },
+  mongo: {
+    uri: process.env.MONGO_URI || "mongodb+srv://aldiarabdysev426_db_user:NMZ7kkhrm1nJMiSm@cluster0.bjj5leo.mongodb.net/",
   },
 };

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Сделки — miniCRM</title>
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/nav.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        .deals-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--white);
+            padding: 12px 18px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .deal-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .load-more-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stage-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .btn-load-more {
+            background: var(--primary);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .btn-load-more:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-load-more:disabled {
+            background: var(--text-muted);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .amount-display {
+            font-weight: 700;
+            color: #2b2d42;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="top-bar">
+            <div class="page-title">Сделки (SQL CRM)</div>
+            <button class="btn btn-primary" id="btn-add-deal">+ Новая сделка</button>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <div class="deals-container">
+            <div class="filter-bar">
+                <div id="deals-count" style="font-weight: 500; color: var(--text-muted);">Загрузка...</div>
+                <div style="font-size: 12px; color: var(--text-muted);">
+                    💡 Прокрутите страницу вниз или нажмите "Загрузить еще" для подгрузки сделок.
+                </div>
+            </div>
+
+            <div class="card-table glass-card">
+                <table id="deals-table">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Компания</th>
+                            <th>Владелец (Менеджер)</th>
+                            <th>Сумма</th>
+                            <th>Стадия</th>
+                            <th>Дата закрытия</th>
+                            <th>Создана</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deals-tbody">
+                        <tr>
+                            <td colspan="8" class="loading">Загрузка сделок...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="load-more-container">
+                <button class="btn btn-load-more" id="btn-load-more" style="display:none;">Загрузить еще</button>
+                <div id="loading-spinner" style="display:none; color: var(--text-muted);">Загрузка дополнительных
+                    сделок...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deal-modal">
+        <div class="modal">
+            <div class="modal-title" id="modal-title">Сделка</div>
+            <div id="modal-alert"></div>
+
+            <div class="form-group">
+                <label>Название сделки *</label>
+                <input type="text" id="f-title" placeholder="Поставка оборудования">
+            </div>
+
+            <div class="form-group">
+                <label>Компания *</label>
+                <select id="f-company">
+                    <option value="">Выберите компанию...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Ответственный менеджер *</label>
+                <select id="f-owner">
+                    <option value="">Выберите менеджера...</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
+                <div>
+                    <label>Сумма</label>
+                    <input type="number" id="f-amount" min="0" step="0.01" placeholder="150000.00">
+                </div>
+                <div>
+                    <label>Валюта</label>
+                    <select id="f-currency">
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="RUB">RUB (₽)</option>
+                        <option value="KZT">KZT (₸)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Стадия *</label>
+                <select id="f-stage">
+                    <option value="lead">Лид (Lead)</option>
+                    <option value="qualified">Квалифицирован (Qualified)</option>
+                    <option value="proposal">Комм. предложение (Proposal)</option>
+                    <option value="negotiation">Переговоры (Negotiation)</option>
+                    <option value="won">Выиграна (Won)</option>
+                    <option value="lost">Проиграна (Lost)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Ожидаемая дата закрытия</label>
+                <input type="date" id="f-close-date">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="btn-modal-cancel">Отмена</button>
+                <button class="btn btn-primary" id="btn-modal-save">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/nav.js"></script>
+
+    <script>
+        requireAuth();
+        renderNav("deals");
+
+        let limit = 10;
+        let cursor = null;
+        let isLoading = false;
+        let hasMore = true;
+        let editId = null;
+        let loadedDealsCount = 0;
+
+        const stageBadges = {
+            lead: 'badge-orange',
+            qualified: 'badge-blue',
+            proposal: 'badge-blue',
+            negotiation: 'badge-orange',
+            won: 'badge-green',
+            lost: 'badge-red'
+        };
+
+        const stageNames = {
+            lead: 'Лид',
+            qualified: 'Квалифицирован',
+            proposal: 'Предложение',
+            negotiation: 'Переговоры',
+            won: 'Выиграна',
+            lost: 'Проиграна'
+        };
+
+        function formatCurrency(amount, currency) {
+            if (amount === null || amount === undefined) return '—';
+            const val = parseFloat(amount).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            let symbol = currency;
+            if (currency === 'USD') symbol = '$';
+            else if (currency === 'EUR') symbol = '€';
+            else if (currency === 'RUB') symbol = '₽';
+            else if (currency === 'KZT') symbol = '₸';
+            return `${symbol} ${val}`;
+        }
+
+        function loadDeals(append = false) {
+            if (isLoading || (!hasMore && append)) return;
+
+            isLoading = true;
+            if (append) {
+                $('#loading-spinner').show();
+            } else {
+                cursor = null;
+                hasMore = true;
+                loadedDealsCount = 0;
+                $('#deals-tbody').html('<tr><td colspan="8" class="loading">Загрузка сделок...</td></tr>');
+            }
+
+            const url = API_BASE + `/deals?limit=${limit}` + (cursor ? `&cursor=${encodeURIComponent(cursor)}` : '');
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + getToken()
+                },
+                success: function (response) {
+                    const deals = response.data || [];
+                    cursor = response.nextCursor;
+
+                    if (deals.length < limit || !cursor) {
+                        hasMore = false;
+                        $('#btn-load-more').hide();
+                    } else {
+                        $('#btn-load-more').show();
+                    }
+
+                    if (!append) {
+                        $('#deals-tbody').empty();
+                    }
+
+                    $('#loading-spinner').hide();
+                    isLoading = false;
+
+                    if (!append && deals.length === 0) {
+                        $('#deals-tbody').html('<tr><td colspan="8" class="empty">Сделок пока нет</td></tr>');
+                        $('#deals-count').text('Показано: 0 сделок');
+                        return;
+                    }
+
+                    loadedDealsCount += deals.length;
+                    $('#deals-count').text(`Отображено: ${loadedDealsCount} сделок`);
+
+                    deals.forEach(deal => {
+                        const stageBadge = stageBadges[deal.stage] || 'badge-gray';
+                        const stageName = stageNames[deal.stage] || deal.stage;
+                        const closeDateStr = deal.close_date ? formatDate(deal.close_date) : '—';
+                        const rowHtml = `
+                            <tr id="deal-row-${deal.id}">
+                                <td><strong>${deal.title}</strong></td>
+                                <td><span class="badge badge-gray">${deal.company_name || 'Не указана'}</span></td>
+                                <td>${deal.owner_name || 'Не назначен'}</td>
+                                <td><span class="amount-display">${formatCurrency(deal.amount, deal.currency)}</span></td>
+                                <td><span class="stage-badge ${stageBadge}">${stageName}</span></td>
+                                <td>${closeDateStr}</td>
+                                <td>${formatDate(deal.created_at)}</td>
+                                <td>
+                                    <div class="deal-actions">
+                                        <button class="btn btn-outline ai-btn" style="padding: 4px 8px; font-size: 11px;" title="Спросить AI о сделке">AI</button>
+                                        <button class="btn btn-outline edit-btn" style="padding: 4px 8px; font-size: 11px;">Ред.</button>
+                                        <button class="btn btn-danger delete-btn" style="padding: 4px 8px; font-size: 11px;">✕</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        const $row = $(rowHtml);
+
+                        $row.find('.ai-btn').on('click', () => {
+                            window.location.href = `AIchat.html?crm_deal_id=${deal.id}`;
+                        });
+                        $row.find('.edit-btn').on('click', () => openEditModal(deal));
+                        $row.find('.delete-btn').on('click', () => deleteDeal(deal.id));
+
+                        $('#deals-tbody').append($row);
+                    });
+                },
+                error: function (xhr) {
+                    $('#loading-spinner').hide();
+                    isLoading = false;
+                    showAlert($('#alert-container'), 'Ошибка при загрузке сделок: ' + (xhr.responseJSON?.message || xhr.statusText));
+                }
+            });
+        }
+
+        let companiesLoaded = false;
+        let usersLoaded = false;
+
+        async function loadModalSelects() {
+            if (!companiesLoaded) {
+                try {
+                    const companies = await apiFetch("/companies");
+                    const $compSelect = $('#f-company');
+                    $compSelect.find('option:not(:first)').remove();
+                    companies.forEach(c => {
+                        $compSelect.append(`<option value="${c.id}">${c.name}</option>`);
+                    });
+                    companiesLoaded = true;
+                } catch (err) {
+                    console.error("Ошибка загрузки компаний:", err);
+                }
+            }
+
+            if (!usersLoaded) {
+                try {
+                    const users = await apiFetch("/users");
+                    const $userSelect = $('#f-owner');
+                    $userSelect.find('option:not(:first)').remove();
+                    users.forEach(u => {
+                        $userSelect.append(`<option value="${u.id}">${u.name} (${u.role})</option>`);
+                    });
+                    usersLoaded = true;
+                } catch (err) {
+                    console.error("Ошибка загрузки пользователей:", err);
+                }
+            }
+        }
+        async function openAddModal() {
+            editId = null;
+            $('#modal-title').text('Новая сделка');
+            $('#modal-alert').empty();
+
+            $('#f-title').val('');
+            $('#f-company').val('');
+            $('#f-owner').val('');
+            $('#f-amount').val('');
+            $('#f-currency').val('USD');
+            $('#f-stage').val('lead');
+            $('#f-close-date').val('');
+
+            $('#deal-modal').addClass('open');
+            await loadModalSelects();
+        }
+
+        async function openEditModal(deal) {
+            editId = deal.id;
+            $('#modal-title').text('Редактировать сделку');
+            $('#modal-alert').empty();
+
+            await loadModalSelects();
+
+            $('#f-title').val(deal.title || '');
+            $('#f-company').val(deal.company_id || '');
+            $('#f-owner').val(deal.owner_id || '');
+            $('#f-amount').val(deal.amount || '');
+            $('#f-currency').val(deal.currency || 'USD');
+            $('#f-stage').val(deal.stage || 'lead');
+
+            if (deal.close_date) {
+                const dateOnly = new Date(deal.close_date).toISOString().split('T')[0];
+                $('#f-close-date').val(dateOnly);
+            } else {
+                $('#f-close-date').val('');
+            }
+
+            $('#deal-modal').addClass('open');
+        }
+
+        function closeDealModal() {
+            $('#deal-modal').removeClass('open');
+        }
+
+        function deleteDeal(id) {
+            if (!confirm('Вы уверены, что хотите удалить сделку?')) return;
+
+            $.ajax({
+                url: API_BASE + `/deals/${id}`,
+                type: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + getToken()
+                },
+                success: function () {
+                    showToast('Сделка удалена', 'Сделка была успешно удалена из базы данных');
+                    loadDeals(false);
+                },
+                error: function (xhr) {
+                    showAlert($('#alert-container'), 'Ошибка удаления сделки: ' + (xhr.responseJSON?.message || xhr.statusText));
+                }
+            });
+        }
+        $('#btn-add-deal').on('click', openAddModal);
+        $('#btn-modal-cancel').on('click', closeDealModal);
+        $('#btn-load-more').on('click', () => loadDeals(true));
+
+        $('#btn-modal-save').on('click', function () {
+            const payload = {
+                title: $('#f-title').val().trim(),
+                company_id: $('#f-company').val(),
+                owner_id: $('#f-owner').val(),
+                amount: $('#f-amount').val() ? parseFloat($('#f-amount').val()) : null,
+                currency: $('#f-currency').val(),
+                stage: $('#f-stage').val(),
+                close_date: $('#f-close-date').val() || null
+            };
+
+            if (!payload.title || !payload.company_id || !payload.owner_id || !payload.stage) {
+                showAlert($('#modal-alert'), 'Пожалуйста, заполните все обязательные поля (*)');
+                return;
+            }
+
+            const method = editId ? 'PUT' : 'POST';
+            const url = API_BASE + '/deals' + (editId ? `/${editId}` : '');
+
+            $.ajax({
+                url: url,
+                type: method,
+                headers: {
+                    'Authorization': 'Bearer ' + getToken(),
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(payload),
+                success: function (res) {
+                    closeDealModal();
+                    showToast(
+                        editId ? 'Сделка сохранена' : 'Сделка создана',
+                        `Сделка "${payload.title}" была успешно сохранена`
+                    );
+                    loadDeals(false);
+                },
+                error: function (xhr) {
+                    const errors = xhr.responseJSON?.errors;
+                    const errorMsg = Array.isArray(errors)
+                        ? errors.map(e => e.message).join(', ')
+                        : (xhr.responseJSON?.message || xhr.statusText);
+                    showAlert($('#modal-alert'), 'Ошибка сохранения: ' + errorMsg);
+                }
+            });
+        });
+
+        $(window).on('scroll', function () {
+            if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+                if (hasMore && !isLoading) {
+                    loadDeals(true);
+                }
+            }
+        });
+
+        loadDeals(false);
+    </script>
+</body>
+
+</html>

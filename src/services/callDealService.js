@@ -1,6 +1,5 @@
 const { bulkMoveQueue } = require("../queue/queue");
 const AppError = require("../../AppError");
-const callDealRepositories = require("../repositories/callDealRepository");
 const callDealHistoryRepositories = require("../repositories/callDealHistoryRepository");
 const dealColumnsRepositories = require("../repositories/dealColumnsRepository");
 const callDealRepository = require("../repositories/callDealRepository");
@@ -106,11 +105,11 @@ class callDealService {
       deal.position,
     );
 
-    await callDealRepository.create({
+    await callDealHistoryRepositories.create({
       call_deal_id: id,
       from_column: deal.column_id,
       to_column: targetColumnId,
-      movedBy: userId,
+      moved_by: userId,
     });
 
     return updated;

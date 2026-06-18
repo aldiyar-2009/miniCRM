@@ -14,6 +14,9 @@ const app = express();
 const server = require("http").createServer(app);
 
 require("dotenv").config();
+require("./config/mongo");
+
+app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
 // роуты
 const companyRoutes = require("./routes/companyRoutes");
@@ -25,10 +28,12 @@ const statsRoutes = require("./routes/statsRoutes");
 const dealColumnsRoutes = require("./routes/dealColumnsRoutes");
 const callDealRoutes = require("./routes/callDealRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 const { initSocket } = require("./socket/socket");
 
 app.use(compression());
+app.set("etag", "strong");
 
 //безопасность
 const allowedOrigins = process.env.CORS_ORIGINS
@@ -166,6 +171,7 @@ app.use(contactRoutes);
 app.use(dealsRoutes);
 app.use(activityRoutes);
 app.use(statsRoutes);
+app.use(chatRoutes);
 
 // app.use("/", dealColumnsRoutes);
 // app.use("/", callDealRoutes);

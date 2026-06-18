@@ -5,7 +5,6 @@ const userRepository = require("../repositories/userRepositories");
 
 class DealService {
   async createDeal(data) {
-    // Promise.all — запускаем оба запроса к БД параллельно, не ждём один за другим
     const [company, owner] = await Promise.all([
       companyRepository.getCompanyById(data.company_id),
       userRepository.getUserById(data.owner_id),
@@ -27,7 +26,10 @@ class DealService {
     return dealRepository.createDeal(data);
   }
 
-  async getAllDeals() {
+  async getAllDeals({ limit, cursor } = {}) {
+    if (limit !== undefined || cursor !== undefined) {
+      return dealRepository.getAllDealsPaginated({ limit, cursor });
+    }
     return dealRepository.getAllDeals();
   }
 

@@ -2,6 +2,7 @@ const express = require("express");
 const callDealController = require("../controllers/callDealController");
 const auth = require("../middleware/auth");
 const role = require("../middleware/role");
+const { cacheMiddleware } = require("../utils/cache");
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.get(
   callDealController.getBulkMoveStatus,
 );
 
-router.get("/call-deals", auth, callDealController.getAll);
+router.get("/call-deals", auth, cacheMiddleware("call-deals"), callDealController.getAll);
 router.get("/call-deals/:id", auth, callDealController.getById);
 
 router.post("/call-deals", auth, callDealController.create);

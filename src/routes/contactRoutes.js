@@ -2,11 +2,12 @@ const express = require("express");
 const contactController = require("../controllers/contactController");
 const auth = require("../middleware/auth");
 const role = require("../middleware/role");
+const { cacheMiddleware } = require("../utils/cache");
 
 const router = express.Router();
 
 router.post("/contacts", auth, role(["admin", "manager"]), contactController.createContact);
-router.get("/contacts", auth, role(["admin", "manager", "viewer"]), contactController.getAllContacts);
+router.get("/contacts", auth, role(["admin", "manager", "viewer"]), cacheMiddleware("contacts"), contactController.getAllContacts);
 router.get("/contacts/:id", auth, role(["admin", "manager", "viewer"]), contactController.getContactById);
 router.get(
   "/contacts/company/:company_id",

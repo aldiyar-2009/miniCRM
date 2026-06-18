@@ -1,4 +1,5 @@
 const companyService = require("../services/companyService");
+const { clearCache } = require("../utils/cache");
 
 const {
   validateCompany,
@@ -15,6 +16,8 @@ class companyController {
       }
 
       const company = await companyService.createCompany(value);
+      clearCache("companies");
+      clearCache("stats");
       res.status(201).json(company);
     } catch (err) {
       next(err);
@@ -48,6 +51,8 @@ class companyController {
       }
 
       const company = await companyService.updateCompany(req.params.id, value);
+      clearCache("companies");
+      clearCache("stats");
       res.status(200).json(company);
     } catch (err) {
       next(err);
@@ -57,6 +62,8 @@ class companyController {
   async deleteCompany(req, res, next) {
     try {
       await companyService.deleteCompany(req.params.id);
+      clearCache("companies");
+      clearCache("stats");
       res.status(200).json({ message: "Компания удалена" });
     } catch (err) {
       next(err);

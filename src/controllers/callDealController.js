@@ -1,4 +1,5 @@
 const callDealService = require("../services/callDealService");
+const { clearCache } = require("../utils/cache");
 
 class callDealController {
   async getAll(req, res, next) {
@@ -20,6 +21,8 @@ class callDealController {
         ...req.body,
         created_by: req.user.id,
       });
+      clearCache("call-deals");
+      clearCache("stats");
       res.status(201).json(deal);
     } catch (error) {
       next(error);
@@ -38,6 +41,8 @@ class callDealController {
   async update(req, res, next) {
     try {
       const deal = await callDealService.update(req.params.id, req.body);
+      clearCache("call-deals");
+      clearCache("stats");
       res.status(200).json(deal);
     } catch (error) {
       next(error);
@@ -47,6 +52,8 @@ class callDealController {
   async delete(req, res, next) {
     try {
       const deal = await callDealService.delete(req.params.id);
+      clearCache("call-deals");
+      clearCache("stats");
       res.status(200).json({ message: "Сделка удалена" });
     } catch (error) {
       next(error);
@@ -60,6 +67,8 @@ class callDealController {
         req.body.targetColumnId,
         req.user.id,
       );
+      clearCache("call-deals");
+      clearCache("stats");
       res.status(200).json(deal);
     } catch (error) {
       next(error);
@@ -74,6 +83,8 @@ class callDealController {
         req.user.id,
       );
 
+      clearCache("call-deals");
+      clearCache("stats");
       res.status(202).json(result);
     } catch (error) {
       next(error);

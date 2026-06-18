@@ -34,11 +34,11 @@ const bulkMoveWorker = new Worker(
 );
 
 bulkMoveWorker.on("completed", (job) => {
-  console.log(`bulk move job ${job.id} завершен`);
+  console.log(`задача массового переноса ${job.id} завершена`);
 });
 
 bulkMoveWorker.on("failed", (job, err) => {
-  console.log(`bulk move job ${job.id} упал:`, err.message);
+  console.error(`задача массового переноса ${job.id} завершилась с ошибкой:`, err.message);
 });
 
 module.exports = bulkMoveWorker;

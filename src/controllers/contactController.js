@@ -1,4 +1,5 @@
 const contactService = require("../services/contactService");
+const { clearCache } = require("../utils/cache");
 const {
   validateContact,
   validateContactUpdate,
@@ -14,6 +15,8 @@ class ContactController {
       }
 
       const contact = await contactService.createContact(value);
+      clearCache("contacts");
+      clearCache("stats");
       res.status(201).json(contact);
     } catch (err) {
       next(err);
@@ -58,6 +61,8 @@ class ContactController {
       }
 
       const contact = await contactService.updateContact(req.params.id, value);
+      clearCache("contacts");
+      clearCache("stats");
       res.status(200).json(contact);
     } catch (err) {
       next(err);
@@ -67,6 +72,8 @@ class ContactController {
   async deleteContact(req, res, next) {
     try {
       await contactService.deleteContact(req.params.id);
+      clearCache("contacts");
+      clearCache("stats");
       res.status(200).json({ message: "Контакт успешно удален" });
     } catch (err) {
       next(err);

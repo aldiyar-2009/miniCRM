@@ -1,4 +1,4 @@
-const AppError = require("../AppError");
+const AppError = require("../../AppError");
 const redis = require("../config/redis");
 const dealColumnsRepository = require("../repositories/dealColumnsRepository");
 

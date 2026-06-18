@@ -27,6 +27,11 @@ function renderNav(activePage) {
       key: "companies",
     },
     {
+      href: "deals.html",
+      label: "Сделки",
+      key: "deals",
+    },
+    {
       href: "contacts.html",
       label: "Контакты",
       key: "contacts",
@@ -35,6 +40,11 @@ function renderNav(activePage) {
       href: "chat.html",
       label: "Чат",
       key: "chat",
+    },
+    {
+      href: "AIchat.html",
+      label: "AI Ассистент",
+      key: "aichat",
     },
   ];
   if (isAdmin)
@@ -65,8 +75,8 @@ function renderNav(activePage) {
       <div class="nav-links">${linksHtml}</div>
       <div class="nav-right">
         <div class="nav-bell-wrap" id="bell-wrap">
-          <button class="nav-bell-btn" id="bell-btn">🔔
-            <span class="bell-badge" id="bell-badge"></span>
+          <button class="nav-bell-btn" id="bell-btn" type="button">
+            🔔 <span class="bell-badge" id="bell-badge"></span>
           </button>
           <div class="notif-dropdown" id="notif-dropdown">
             <div class="notif-head">
@@ -96,36 +106,48 @@ function renderNav(activePage) {
   );
 
   // Профиль dropdown
-  document.getElementById("profile-btn").addEventListener("click", (e) => {
-    e.stopPropagation();
-    document.getElementById("profile-dropdown").classList.toggle("open");
-    document.getElementById("notif-dropdown").classList.remove("open");
-  });
+  const profileBtn = document.getElementById("profile-btn");
+  const profileDropdown = document.getElementById("profile-dropdown");
+  const notifDropdown = document.getElementById("notif-dropdown");
+  const bellBtn = document.getElementById("bell-btn");
+  const markAllBtn = document.getElementById("mark-all-btn");
+  const logoutBtn = document.getElementById("logout-btn");
 
-  // Колокольчик dropdown
-  document.getElementById("bell-btn").addEventListener("click", (e) => {
-    e.stopPropagation();
-    document.getElementById("notif-dropdown").classList.toggle("open");
-    document.getElementById("profile-dropdown").classList.remove("open");
-    loadNotifications();
-  });
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle("open");
+      notifDropdown?.classList.remove("open");
+    });
+  }
 
-  document
-    .getElementById("mark-all-btn")
-    .addEventListener("click", async () => {
+  if (bellBtn && notifDropdown) {
+    bellBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      notifDropdown.classList.toggle("open");
+      profileDropdown?.classList.remove("open");
+      loadNotifications();
+    });
+  }
+
+  if (markAllBtn) {
+    markAllBtn.addEventListener("click", async () => {
       await apiFetch("/notifications/read-all", { method: "PATCH" });
       loadNotifications();
     });
+  }
 
   document.addEventListener("click", () => {
-    document.getElementById("profile-dropdown")?.classList.remove("open");
-    document.getElementById("notif-dropdown")?.classList.remove("open");
+    profileDropdown?.classList.remove("open");
+    notifDropdown?.classList.remove("open");
   });
 
-  document.getElementById("logout-btn").addEventListener("click", () => {
-    clearTokens();
-    window.location.href = "login.html";
-  });
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      clearTokens();
+      window.location.href = "login.html";
+    });
+  }
 
   loadNotifications();
 }

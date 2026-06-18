@@ -2,6 +2,7 @@ const express = require("express");
 const dealController = require("../controllers/dealsController");
 const auth = require("../middleware/auth");
 const role = require("../middleware/role");
+const { cacheMiddleware } = require("../utils/cache");
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.get(
   "/deals",
   auth,
   role(["admin", "manager", "viewer"]),
+  cacheMiddleware("deals"),
   dealController.getAllDeals,
 );
 router.get(
