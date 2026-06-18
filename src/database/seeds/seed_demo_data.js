@@ -5,12 +5,9 @@ const crypto = require("crypto");
  * @returns { Promise<void> }
  */
 exports.seed = async function (knex) {
-  // Очищаем все таблицы с каскадным удалением зависимостей
   await knex.raw(
-    "TRUNCATE TABLE chat_messages, notifications, call_deal_history, call_deals, deal_columns, activities, deals, contacts, users, companies CASCADE;"
+    "TRUNCATE TABLE chat_messages, notifications, call_deal_history, call_deals, deal_columns, activities, deals, contacts, users, companies CASCADE;",
   );
-
-  // Генерируем UUID в коде для связывания отношений
   const companyAcmeId = crypto.randomUUID();
   const companyStarkId = crypto.randomUUID();
   const companyOscorpId = crypto.randomUUID();
@@ -39,8 +36,6 @@ exports.seed = async function (knex) {
 
   const callDealAcmeId = crypto.randomUUID();
   const callDealStarkId = crypto.randomUUID();
-
-  // 1. Вставляем компании
   await knex("companies").insert([
     {
       id: companyAcmeId,
@@ -48,7 +43,8 @@ exports.seed = async function (knex) {
       industry: "Информационные технологии",
       website: "https://acme-inc.ru",
       secret_code: "ACME2026",
-      description: "Крупный разработчик программного обеспечения и ИТ-инфраструктуры.",
+      description:
+        "Крупный разработчик программного обеспечения и ИТ-инфраструктуры.",
     },
     {
       id: companyStarkId,
@@ -56,7 +52,8 @@ exports.seed = async function (knex) {
       industry: "Оборона и технологии",
       website: "https://starkindustries.com",
       secret_code: "STARK888",
-      description: "Ведущая технологическая корпорация, специализирующаяся на чистой энергии и робототехнике.",
+      description:
+        "Ведущая технологическая корпорация, специализирующаяся на чистой энергии и робототехнике.",
     },
     {
       id: companyOscorpId,
@@ -64,13 +61,13 @@ exports.seed = async function (knex) {
       industry: "Биотехнологии",
       website: "https://oscorp.com",
       secret_code: "OSCORP13",
-      description: "Мультинациональная корпорация, занимающаяся передовыми генетическими и химическими исследованиями.",
+      description:
+        "Мультинациональная корпорация, занимающаяся передовыми генетическими и химическими исследованиями.",
     },
   ]);
-
-  // 2. Вставляем пользователей
-  // Пароль для всех пользователей: 'password123'
-  const hashedPasswordRaw = knex.raw("crypt(?, gen_salt('bf', 6))", ["password123"]);
+  const hashedPasswordRaw = knex.raw("crypt(?, gen_salt('bf', 6))", [
+    "password123",
+  ]);
 
   await knex("users").insert([
     {
@@ -106,12 +103,13 @@ exports.seed = async function (knex) {
       company_id: companyStarkId,
     },
   ]);
+  await knex("companies")
+    .where({ id: companyAcmeId })
+    .update({ owner_id: userIvanId });
+  await knex("companies")
+    .where({ id: companyStarkId })
+    .update({ owner_id: userTonyId });
 
-  // 3. Обновляем владельцев компаний
-  await knex("companies").where({ id: companyAcmeId }).update({ owner_id: userIvanId });
-  await knex("companies").where({ id: companyStarkId }).update({ owner_id: userTonyId });
-
-  // 4. Вставляем контакты
   await knex("contacts").insert([
     {
       id: contactJohnId,
@@ -155,14 +153,13 @@ exports.seed = async function (knex) {
     },
   ]);
 
-  // 5. Вставляем классические сделки (таблица 'deals')
   await knex("deals").insert([
     {
       id: dealCrmId,
       company_id: companyAcmeId,
       owner_id: userIvanId,
       title: "Внедрение корпоративной CRM",
-      amount: 250000.00,
+      amount: 250000.0,
       currency: "RUB",
       stage: "negotiation",
       close_date: "2026-09-30",
@@ -172,7 +169,7 @@ exports.seed = async function (knex) {
       company_id: companyAcmeId,
       owner_id: userPetrId,
       title: "Поставка серверного оборудования",
-      amount: 120000.00,
+      amount: 120000.0,
       currency: "RUB",
       stage: "proposal",
       close_date: "2026-07-15",
@@ -182,7 +179,7 @@ exports.seed = async function (knex) {
       company_id: companyStarkId,
       owner_id: userTonyId,
       title: "Разработка брони Mark 85",
-      amount: 999000.00,
+      amount: 999000.0,
       currency: "USD",
       stage: "won",
       close_date: "2026-06-01",
@@ -192,14 +189,13 @@ exports.seed = async function (knex) {
       company_id: companyOscorpId,
       owner_id: userPetrId,
       title: "Лицензии на антивирусный софт",
-      amount: 4500.00,
+      amount: 4500.0,
       currency: "USD",
       stage: "lead",
       close_date: "2026-08-01",
     },
   ]);
 
-  // 6. Вставляем активности по классическим сделкам
   await knex("activities").insert([
     {
       id: crypto.randomUUID(),
@@ -233,7 +229,6 @@ exports.seed = async function (knex) {
     },
   ]);
 
-  // 7. Вставляем канбан-колонки (таблица 'deal_columns')
   await knex("deal_columns").insert([
     {
       id: columnNewId,
@@ -272,7 +267,6 @@ exports.seed = async function (knex) {
     },
   ]);
 
-  // 8. Вставляем канбан-сделки по звонкам (таблица 'call_deals')
   await knex("call_deals").insert([
     {
       id: callDealAcmeId,
@@ -300,7 +294,6 @@ exports.seed = async function (knex) {
     },
   ]);
 
-  // 9. Вставляем историю перемещений канбан-сделок (таблица 'call_deal_history')
   await knex("call_deal_history").insert([
     {
       id: crypto.randomUUID(),
@@ -312,7 +305,6 @@ exports.seed = async function (knex) {
     },
   ]);
 
-  // 10. Вставляем уведомления (таблица 'notifications')
   await knex("notifications").insert([
     {
       id: crypto.randomUUID(),
@@ -332,7 +324,6 @@ exports.seed = async function (knex) {
     },
   ]);
 
-  // 11. Вставляем демо-сообщения чата в PostgreSQL (таблица 'chat_messages')
   await knex("chat_messages").insert([
     {
       id: crypto.randomUUID(),
@@ -340,7 +331,8 @@ exports.seed = async function (knex) {
       contact_id: contactPepperId,
       user_id: userTonyId,
       user_message: "Каков текущий статус разработки брони Mark 85?",
-      ai_response: "Разработка брони Mark 85 успешно завершена. Все системы жизнеобеспечения, нано-структура и интеграция реактора протестированы и готовы к эксплуатации. Сделка переведена в стадию 'Успешно'.",
+      ai_response:
+        "Разработка брони Mark 85 успешно завершена. Все системы жизнеобеспечения, нано-структура и интеграция реактора протестированы и готовы к эксплуатации. Сделка переведена в стадию 'Успешно'.",
       model: "llama-3.3-70b-versatile",
       token_used: 128,
     },
