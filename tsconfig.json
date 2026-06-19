@@ -11,6 +11,6 @@
     "resolveJsonModule": true,
     "outDir": "dist"
   },
-  "include": ["src/**/*", "public/**/*", "server.js", "app.js"],
+  "include": ["src/**/*", "public/**/*", "server.js", "app.js", "src/database/migrations/20260601153305_users.js", "src/database/migrations/20260601153318_contacts.jsrc/database/migrations/20260601153332_deals.jsrc/database/migrations/20260601153342_activities.jsrc/database/migrations/20260601153351_deal_stage_history.jsrc/database/migrations/20260611085218_deal_columns.jsrc/database/migrations/20260611091339_call_deals.jsrc/database/migrations/20260611091407_call_deals_history.jsrc/database/migrations/20260611091516_notifications.jsrc/database/migrations/20260612000001_users_add_company.jsrc/database/migrations/20260612090536_add_indexes.jsrc/database/migrations/20260616000002_chat.jsrc/database/migrations/20260618115218_drop_unused_tables.jsrc/database/migrations/20260618120000_chat_crm_deal.jsrc/database/migrations/20260618130000_chat_session_id.jsm_deal.js", "папка для миграции/20260618130000_chat_session_id.js"],
   "exclude": ["node_modules", "dist"]
 }

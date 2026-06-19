@@ -1,7 +1,5 @@
-// Текущая выбранная сессия (диалог)
 let currentSessionId = null;
 
-// Заголовок для $.ajax — токен авторизации
 function authHeaders() {
   return {
     Authorization: "Bearer " + getToken(),
@@ -9,19 +7,28 @@ function authHeaders() {
   };
 }
 
-// Показать сообщение в окне чата
-function showMessage(text, cssClass) {
-  const html = `<div class="ai-message ${cssClass}">${text}</div>`;
+function showMessage(text, cssClass, sources) {
+  let html = `<div class="ai-message ${cssClass}">${text}`;
+
+  if (sources && sources.length > 0) {
+    html += `<div class="ai-sources">Источники: `;
+    html += sources
+      .map(function (s) {
+        return `<a href="#" class="source-link" data-doc="${s.fileName}">${s.fileName}</a>`;
+      })
+      .join(", ");
+    html += `</div>`;
+  }
+
+  html += `</div>`;
   $("#ai-chat-display").append(html);
   $("#ai-chat-display").scrollTop($("#ai-chat-display")[0].scrollHeight);
 }
 
-// Очистить окно чата
 function clearChat() {
   $("#ai-chat-display").empty();
 }
 
-// Загрузить список диалогов с сервера
 function loadSessions() {
   $.ajax({
     url: API_BASE + "/chat/sessions",
@@ -53,7 +60,6 @@ function loadSessions() {
   });
 }
 
-// Открыть выбранный диалог и подгрузить историю
 function openSession(sessionId) {
   currentSessionId = sessionId;
   clearChat();
@@ -79,7 +85,6 @@ function openSession(sessionId) {
   });
 }
 
-// Создать новый диалог
 function createSession() {
   $.ajax({
     url: API_BASE + "/chat/sessions",
@@ -94,7 +99,6 @@ function createSession() {
   });
 }
 
-// Отправить сообщение AI
 $("#ai-chat-form").on("submit", function (e) {
   e.preventDefault();
 
@@ -121,7 +125,7 @@ $("#ai-chat-form").on("submit", function (e) {
       crm_deal_id: crm_deal_id,
     }),
     success: function (res) {
-      showMessage(res.answer || "Нет ответа", "ai-response");
+      showMessage(res.answer || "Нет ответа", "ai-response", res.sources);
       loadSessions();
     },
     error: function (xhr) {
@@ -133,10 +137,63 @@ $("#ai-chat-form").on("submit", function (e) {
 
 $("#btn-new-session").on("click", createSession);
 
-// При открытии страницы — загружаем список диалогов
-loadSessions();
+function loadDocuments() {
+  $.ajax({
+    url: API_BASE + "/knowledge/documents",
+    method: "GET",
+    headers: authHeaders(),
+    success: function (res) {
+      const list = $("#document-list");
+      list.empty();
+      (res.data || []).forEach(function (doc) {
+        const li = $("<li></li>").text(
+          doc.fileName + " (" + doc.chunksCount + " чанков)",
+        );
+        list.append(li);
+      });
+    },
+    error: function (xhr) {
+      console.error("Ошибка загрузки документов:", xhr.responseJSON);
+    },
+  });
+}
 
-// Если пришли со страницы сделок — подставляем ID
+$("#knowledge-upload-form").on("submit", function (e) {
+  e.preventDefault();
+
+  const fileInput = $("#documentFile")[0];
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("document", file);
+
+  $("#knowledge-status").text("Загрузка...");
+
+  $.ajax({
+    url: API_BASE + "/knowledge/upload",
+    method: "POST",
+    headers: { Authorization: "Bearer " + getToken() },
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function (res) {
+      $("#knowledge-status").text(
+        "Документ загружен: " + res.document.fileName,
+      );
+      fileInput.value = "";
+      loadDocuments();
+    },
+    error: function (xhr) {
+      const err = xhr.responseJSON?.message || "Ошибка загрузки файла";
+      $("#knowledge-status").text("Ошибка: " + err);
+    },
+  });
+});
+
+loadSessions();
+loadDocuments();
+
 const urlParams = new URLSearchParams(window.location.search);
 const dealFromUrl = urlParams.get("crm_deal_id");
 if (dealFromUrl) {

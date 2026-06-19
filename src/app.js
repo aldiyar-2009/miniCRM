@@ -29,6 +29,7 @@ const dealColumnsRoutes = require("./routes/dealColumnsRoutes");
 const callDealRoutes = require("./routes/callDealRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const knowledgeRoutes = require("./routes/knowledgeRoutes");
 
 const { initSocket } = require("./socket/socket");
 
@@ -172,6 +173,7 @@ app.use(dealsRoutes);
 app.use(activityRoutes);
 app.use(statsRoutes);
 app.use(chatRoutes);
+app.use(knowledgeRoutes);
 
 // app.use("/", dealColumnsRoutes);
 // app.use("/", callDealRoutes);

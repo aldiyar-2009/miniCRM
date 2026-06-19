@@ -9,6 +9,7 @@ module.exports = {
       user: config.db.user,
       password: config.db.password,
       database: config.db.database,
+      ssl: { rejectUnauthorized: false },
     },
     pool: {
       min: 2,
@@ -17,6 +18,9 @@ module.exports = {
     migrations: {
       tableName: "knex_migrations",
       directory: "./migrations",
+    },
+    seeds: {
+      directory: "./seeds",
     },
   },
 };

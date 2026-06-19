@@ -38,6 +38,68 @@
       margin-bottom: 0.75rem;
     }
 
+    .knowledge-panel {
+      margin-top: 1.5rem;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 1rem;
+    }
+
+    .knowledge-panel h2 {
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    #knowledge-upload-form input[type="file"] {
+      width: 100%;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    #knowledge-upload-form button {
+      width: 100%;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 8px;
+      background: #10b981;
+      color: #fff;
+      cursor: pointer;
+      margin-bottom: 0.75rem;
+    }
+
+    #knowledge-status {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 0.5rem;
+    }
+
+    #document-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 30vh;
+      overflow-y: auto;
+    }
+
+    #document-list li {
+      padding: 0.4rem 0.5rem;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      background: #f1f5f9;
+      margin-bottom: 0.25rem;
+      word-break: break-all;
+    }
+
+    .ai-sources {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #475569;
+    }
+
+    .ai-sources a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
     #btn-new-session {
       width: 100%;
       margin-bottom: 1rem;
@@ -146,6 +208,16 @@
       <h2>Диалоги</h2>
       <button id="btn-new-session" type="button">+ Новый диалог</button>
       <ul id="session-list"></ul>
+
+      <div class="knowledge-panel">
+        <h2>База знаний</h2>
+        <form id="knowledge-upload-form">
+          <input id="documentFile" type="file" accept=".txt,.md" required />
+          <button type="submit">Загрузить документ</button>
+        </form>
+        <div id="knowledge-status"></div>
+        <ul id="document-list"></ul>
+      </div>
     </aside>
 
     <section class="chat-panel">
